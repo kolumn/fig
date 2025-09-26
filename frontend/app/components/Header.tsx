@@ -1,14 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHomepage, setIsHomepage] = useState(false);
   const pathname = usePathname();
-  // Strictly check if we're on the homepage
-  const isHomepage = pathname === "/" || pathname === "";
+  
+  // Use useEffect to ensure proper detection after hydration
+  useEffect(() => {
+    const checkHomepage = () => {
+      const currentPath = window.location.pathname;
+      const isHome = currentPath === "/" || currentPath === "" || currentPath === "/home" || currentPath === "/index";
+      setIsHomepage(isHome);
+      
+      // Debug logging for production issues
+      console.log('Header pathname:', currentPath, 'isHomepage:', isHome);
+    };
+    
+    checkHomepage();
+    
+    // Listen for route changes
+    const handleRouteChange = () => checkHomepage();
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, [pathname]);
+  
   // Homepage: transparent bg, light text
   // All other pages: filled bg, dark text
   const bgColorClass = isHomepage
